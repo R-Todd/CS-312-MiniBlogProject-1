@@ -3,6 +3,9 @@ const express = require('express');
 // Create an instance of express
 const app = express();
 
+// Link View Engine
+app.set('view engine', 'ejs');
+
 // Set the port constant
 const port = 3000;
 
