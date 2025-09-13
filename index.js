@@ -3,11 +3,12 @@ const express = require('express');
 // Create an instance of express
 const app = express();
 
-// Middleware to parse URL-encoded bodies
-app.use(express.urlencoded({ extended: true }));
 
 // Link View Engine
 app.set('view engine', 'ejs');
+
+// Middleware to parse URL-encoded bodies
+app.use(express.urlencoded({ extended: true }));
 
 // Set the port constant
 const port = 3000;
@@ -61,6 +62,7 @@ app.get('/', (req, res) => {
     res.render('index', { posts: posts });
 });
 // === END app.get ===
+
 
 
 // === app.listen ===
