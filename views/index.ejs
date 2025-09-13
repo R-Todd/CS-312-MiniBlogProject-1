@@ -1,1 +1,6 @@
-<h1>Hello World!!</h1>
+<h1>BLOG POST</h1>
+
+<% posts.forEach(post => { %>
+    <h2><%= post.title %></h2>
+    <p><%= post.content %></p>
+<% }) %>
