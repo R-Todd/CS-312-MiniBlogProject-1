@@ -8,7 +8,7 @@
 
     </body>
 </html>
-    <form method="POST" action="/edit-post/<%= post.id %>">
+    <form method="POST" action="/update-post/<%= post.id %>">
         <input type="text" name="author" value="<%= post.author %>" required />
         <input type="text" name="title" value="<%= post.title %>" required />
         <textarea name="content" required><%= post.content %></textarea>
