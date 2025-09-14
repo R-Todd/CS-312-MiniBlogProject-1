@@ -13,13 +13,15 @@ app.use(express.urlencoded({ extended: true }));
 // Set the port constant
 const port = 3000;
 
+let nextPostId = 3;
+
 // === Set post array ===
 const posts = [
     {
-        title: "Post 1", content: "This is the content of post 1.",
+        id: 1, title: "Post 1", content: "This is the content of post 1.",
     },
     {
-        title: "Post 2", content: "This is the content of post 2.",
+        id: 2, title: "Post 2", content: "This is the content of post 2.",
     }
 ];
 // === END post array ===
@@ -34,12 +36,23 @@ app.post('/create-post', (req, res) => {
     // 1. Get title and conent from req.body
     const newPostTitle = req.body.title;
     const newPostContent = req.body.content;
+    
 
-    // 2. Create a new post object
-    const newPost = {title: newPostTitle, content: newPostContent};
+    // 2. Create a new post object & variable to hold it
+    const newPost = {
+        id: nextPostId,
+        title: newPostTitle, 
+        content: newPostContent};
+
+    //2.5) nextPostId++; // Increment the post ID for the next post
+    
 
     // 3. Add the new post to the array using ".push(postObject)"
     posts.push(newPost);
+
+    // optional: log the new post to the console
+    console.log(newPost);
+
 
     // 4. Redirect to the home page
     res.redirect('/');
