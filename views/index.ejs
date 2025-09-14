@@ -19,13 +19,18 @@
 
 <%# This is an EJS comment. The code below loops through each post. %>
     <% posts.forEach(post => { %>
-        <article class="post">
-            <h2><%= post.title %></h2>
-            <i>By: <%= post.author %> on <%= post.creationTime.toDateString() %></i>
-            <p><%= post.content %></p>
-            
-            <%# These links use the post's unique ID to create a dynamic URL. By using "post.id" to specify the post we want to access %>
-            <a href="/edit-post/<%= post.id %>">Edit</a>
-            <a href="/delete-post/<%= post.id %>">Delete</a>
-        </article>
-    <% }) %>
+    <article class="post">
+        <h2><%= post.title %></h2>
+        <%# The date has been removed from this line %>
+        <i>By: <%= post.author %></i>
+        <p><%= post.content %></p>
+        
+        <a href="/edit-post/<%= post.id %>">Edit</a>
+        <a href="/delete-post/<%= post.id %>">Delete</a>
+
+        <%# Add this new div below the links %>
+        <div class="post-meta">
+            Posted on <%= post.creationTime.toLocaleString() %>
+        </div>
+    </article>
+<% }) %>

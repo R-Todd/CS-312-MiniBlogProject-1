@@ -13,3 +13,12 @@ body {
     margin-bottom: 20px;
     border-radius: 5px;
 }
+
+
+
+/* style for the timestamp */
+.post-meta {
+    margin-top: 10px; 
+    font-size: 0.9em;  
+    color: #888;
+}

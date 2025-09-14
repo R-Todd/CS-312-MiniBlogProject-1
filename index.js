@@ -22,9 +22,11 @@ let nextPostId = 3;
 const posts = [
     {
         id: 1, title: "Post 1", author: "Donald Duck", content: "This is the content of post 1.",
+        creationTime: new Date()
     },
     {
         id: 2, title: "Post 2", author: "John Doe", content: "This is the content of post 2.",
+        creationTime: new Date()
     }
 ];
 // === END post array ===
