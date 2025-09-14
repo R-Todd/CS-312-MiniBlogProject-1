@@ -99,17 +99,16 @@ app.get('/delete-post/:id', (req, res) => {
 //======== End delete post route handler ========
 
 //======== (START) EDIT post route handler ========
+// Renders the edit page by the id. Allows user to edit a specific post.
+// Does not handle the "POST" request to actually update the post.
 app.get('/edit-post/:id', (req, res) => {
-    // 1. Get post ID from URL params.
-        // since we set the route to '/delete-post/:id', we access the id via req.params.id
-        // the delete button is tied to the url 
-        // so when we clock delete we navage to url and pull data from there
-    const postId = req.params.id;
+    // 1. Get post ID from URL params and convert to an integer.
+    const editPostId = parseInt(req.params.id);
 
     // 2. Finds post object with matching ID
         //    Use the find() method on the 'posts' array.
         //    Using find instead of findIndex because we want the entire post object
-    const postToEdit = posts.find(post => post.id === postId)
+    const postToEdit = posts.find(post => post.id === editPostId)
 
     // 4. In the edit function, we are look for the entire post conect (id,title,author,contenct)
     if (postToEdit) {
@@ -117,18 +116,26 @@ app.get('/edit-post/:id', (req, res) => {
         //render file send the (post) object to the edit.ejs file
         res.render('edit', { post: postToEdit });
         // optional console log
-        console.log(`Post with ID {${postId}} found. Reendering edit page.`);
+        console.log(`Post with ID {${editPostId}} found. Reendering edit page.`);
     } else {
         // Post not found, log a message
         console.log(`ERROR - Post with ID {${editPostId}} not found.`);
         res.redirect('/');
     }
 });
-
-
-
-
 //======== (END) EDIT post route handler ========
+
+//======== (START) UPDATE post route handler ========
+// Handles the "POST" request to actually update the post.
+app.post('/update-post/:id', (req, res) => {
+    // 1. Get post ID from URL params and convert to an integer.
+    const updatePostId = parseInt(req.params.id);
+    // 2. Get updated title and content from req.body
+    const updatedTitle = req.body.title;
+    const updatedContent = req.body.content;
+    const updatedAuthor = req.body.author;
+
+    
 
 /* === app.get ===
     Step 1) "/" - url path

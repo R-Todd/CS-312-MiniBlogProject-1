@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Edit Post</title>
+</head>
+<body>
+    <h1>Edit Your Post</h1>
+
+    </body>
+</html>
+    <form method="POST" action="/edit-post/<%= post.id %>">
+        <input type="text" name="author" value="<%= post.author %>" required />
+        <input type="text" name="title" value="<%= post.title %>" required />
+        <textarea name="content" required><%= post.content %></textarea>
+        <button type="submit">Save Changes</button>
+    </form>
