@@ -60,14 +60,41 @@ app.post('/create-post', (req, res) => {
 });
 
 //=== end of create post route handler ===
-app.post('/delete-post', (req, res) => {
-    // 1. Get the post ID from req.body
-    const deletePostId = parseInt(req.body.id);
+
+
+// AI comment template
+//======== Delete post route handler ========
+app.get('/delete-post/:id', (req, res) => {
+    // 1. Get post ID from URL params.
+        // since we set the route to '/delete-post/:id', we access the id via req.params.id
+        // the delete button is tied to the url 
+        // so when we clock delete we navage to url and pull data from there
+    const postIdStr = req.params.id;
+    // 2. Convert the ID from a string to an integer.
+    const deletePostId = parseInt(postIdStr);
     
-    // 2. Find the index of the post to be deleted
-    // if it retuens -1 there is no post to be deleted
-    const postIndex = posts
+
+    // 3. Find the index of the post to delete.
+    //    Use the findIndex() method on the 'posts' array.
+    //    this searches each post until it finds the one with the matching id
+    const postIndex = posts.findIndex(post => post.id === deletePostId)
+    
+    // 4. If post was found (index is not -1), remove it.
+    //    Use the splice() method to remove one item at the found index.
+    if (postIndex !== -1) {
+        // Post found, remove it from array
+        posts.splice(postIndex, 1);
+        // optional console log
+        console.log(`Post with ID {${deletePostId}} deleted.`);
+    } else {
+        // Post not found, log a message
+        console.log(`ERROR - Post with ID {${deletePostId}} not found.`);
+    }
+
+    // 5. Redirect to the home page.
+    res.redirect('/');
 });
+//=== end of delete post route handler ===
 
 /* === app.get ===
     Step 1) "/" - url path
