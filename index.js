@@ -18,30 +18,30 @@ let nextPostId = 3;
 // === Set post array ===
 const posts = [
     {
-        id: 1, title: "Post 1", content: "This is the content of post 1.",
+        id: 1, title: "Post 1", author: "Donald Duck", content: "This is the content of post 1.",
     },
     {
-        id: 2, title: "Post 2", content: "This is the content of post 2.",
+        id: 2, title: "Post 2", author: "John Doe", content: "This is the content of post 2.",
     }
 ];
 // === END post array ===
 
 
 
-//======== Create post route handler ========
-    
-   
+//======== post route handler ========
 // Create post route handler
 app.post('/create-post', (req, res) => {
     // 1. Get title and conent from req.body
     const newPostTitle = req.body.title;
     const newPostContent = req.body.content;
+    const newPostAuthor = req.body.author;
     
 
     // 2. Create a new post object & variable to hold it
     const newPost = {
         id: nextPostId,
         title: newPostTitle, 
+        author: newPostAuthor,
         content: newPostContent};
 
     // 2.5 Increment the post ID for the next post
@@ -62,8 +62,10 @@ app.post('/create-post', (req, res) => {
 //=== end of create post route handler ===
 
 
-// AI comment template
+
+
 //======== Delete post route handler ========
+// AI comment template
 app.get('/delete-post/:id', (req, res) => {
     // 1. Get post ID from URL params.
         // since we set the route to '/delete-post/:id', we access the id via req.params.id
@@ -94,7 +96,39 @@ app.get('/delete-post/:id', (req, res) => {
     // 5. Redirect to the home page.
     res.redirect('/');
 });
-//=== end of delete post route handler ===
+//======== End delete post route handler ========
+
+//======== (START) EDIT post route handler ========
+app.get('/edit-post/:id', (req, res) => {
+    // 1. Get post ID from URL params.
+        // since we set the route to '/delete-post/:id', we access the id via req.params.id
+        // the delete button is tied to the url 
+        // so when we clock delete we navage to url and pull data from there
+    const postId = req.params.id;
+
+    // 2. Finds post object with matching ID
+        //    Use the find() method on the 'posts' array.
+        //    Using find instead of findIndex because we want the entire post object
+    const postToEdit = posts.find(post => post.id === postId)
+
+    // 4. In the edit function, we are look for the entire post conect (id,title,author,contenct)
+    if (postToEdit) {
+        // Post found, (from url)
+        //render file send the (post) object to the edit.ejs file
+        res.render('edit', { post: postToEdit });
+        // optional console log
+        console.log(`Post with ID {${postId}} found. Reendering edit page.`);
+    } else {
+        // Post not found, log a message
+        console.log(`ERROR - Post with ID {${editPostId}} not found.`);
+        res.redirect('/');
+    }
+});
+
+
+
+
+//======== (END) EDIT post route handler ========
 
 /* === app.get ===
     Step 1) "/" - url path
