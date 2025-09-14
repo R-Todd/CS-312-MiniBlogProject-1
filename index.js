@@ -10,6 +10,9 @@ app.set('view engine', 'ejs');
 // Middleware to parse URL-encoded bodies
 app.use(express.urlencoded({ extended: true }));
 
+// STYLES - Middleware to serve static files from the 'public' directory
+app.use(express.static('public'));
+
 // Set the port constant
 const port = 3000;
 
