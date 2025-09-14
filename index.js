@@ -44,7 +44,8 @@ app.post('/create-post', (req, res) => {
         title: newPostTitle, 
         content: newPostContent};
 
-    //2.5) nextPostId++; // Increment the post ID for the next post
+    // 2.5 Increment the post ID for the next post
+    nextPostId++;
     
 
     // 3. Add the new post to the array using ".push(postObject)"
@@ -59,7 +60,14 @@ app.post('/create-post', (req, res) => {
 });
 
 //=== end of create post route handler ===
-
+app.post('/delete-post', (req, res) => {
+    // 1. Get the post ID from req.body
+    const deletePostId = parseInt(req.body.id);
+    
+    // 2. Find the index of the post to be deleted
+    // if it retuens -1 there is no post to be deleted
+    const postIndex = posts
+});
 
 /* === app.get ===
     Step 1) "/" - url path
