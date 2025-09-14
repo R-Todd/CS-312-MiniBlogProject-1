@@ -135,7 +135,28 @@ app.post('/update-post/:id', (req, res) => {
     const updatedContent = req.body.content;
     const updatedAuthor = req.body.author;
 
-    
+    // 3. Find the post to update using the find() method.
+    const postToUpdate = posts.find(post => post.id === updatePostId);
+
+    // 4. If post was found, update its title and content.
+    if (postToUpdate) {
+        // update the post's properties
+        postToUpdate.title = updatedTitle;
+        postToUpdate.content = updatedContent;
+        postToUpdate.author = updatedAuthor;
+        // optional console log
+        console.log(`Post with ID {${updatePostId}} updated.`);
+    } else {
+        // Post not found, log a message
+        console.log(`ERROR - Post with ID {${updatePostId}} not found.`);
+    }
+    // 5. Redirect to the home page.
+    res.redirect('/');
+});
+//======== (END) UPDATE post route handler ========
+        
+
+
 
 /* === app.get ===
     Step 1) "/" - url path
