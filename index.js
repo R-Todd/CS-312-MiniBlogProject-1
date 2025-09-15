@@ -47,8 +47,8 @@ app.post('/create-post', (req, res) => {
         id: nextPostId,
         title: newPostTitle, 
         author: newPostAuthor,
-        content: newPostContent};
-        creationTime: new Date(); // timestamp of creation
+        content: newPostContent,
+        creationTime: new Date()}; // timestamp of creation
 
     // 2.5 Increment the post ID for the next post
     nextPostId++;
