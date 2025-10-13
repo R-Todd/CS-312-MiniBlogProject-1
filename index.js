@@ -1,8 +1,14 @@
 // Set the app to use "express"
 const express = require('express');
+
+// Import PostgreSQL client
+const { Pool } = require('pg');   // ← missing in your version
+
+// Load environment variables from .env file
+require('dotenv').config();
+
 // Create an instance of express
 const app = express();
-
 
 // Link View Engine
 app.set('view engine', 'ejs');
@@ -16,7 +22,18 @@ app.use(express.static('public'));
 // Set the port constant
 const port = 3000;
 
-let nextPostId = 3;
+// Link to database
+const pool = new Pool({
+  user: process.env.PGUSER,
+  host: process.env.PGHOST,
+  database: process.env.PGDATABASE,
+  password: process.env.PGPASSWORD,
+  port: process.env.PGPORT,
+});
+
+let nextPostId = 3; // Variable to keep track of the next post ID
+
+
 
 // === Set post array ===
 const posts = [
@@ -160,6 +177,46 @@ app.post('/update-post/:id', (req, res) => {
     res.redirect('/');
 });
 //======== (END) UPDATE post route handler ========
+
+//======== (START) CREATE ACCOUNT route handler ========
+app.post('/signup', async (req, res) => {
+    // check if user exits
+    try 
+    {
+        const { user_id, password, name } = req.body;
+        // check if text feilds are empty
+        if (!user_id || !password || !name) {
+            return res.send('All fields are required.');
+        }
+
+        // check if username is already exits in db
+        const checkUserExistsQuery = 'SELECT * FROM users WHERE user_id = $1';
+        // $1 is first value in query 
+        const existingUser = await pool.query(checkUserExistsQuery, [user_id]);
+
+        // user exists send error
+        if (existingUser.rows.length > 0) {
+            return res.send('Username already exists. Please choose a different one.');
+        }
+
+        // insert new user into db
+        const insertUserQuery = 'INSERT INTO users (user_id, password, name) VALUES ($1, $2, $3)';
+        // inserting into position $1, $2, $3
+
+        // send the values to the query
+        await pool.query(insertUserQuery, [user_id, password, name]);
+
+        // redirect to sign in page
+        res.redirect('/singin');
+
+    } catch (error) {
+        console.error('Error creating account:', error);
+        res.status(500).send(' Server Error during sign up.');
+    
+    }
+});
+    //
+//======== (END) CREATE ACCOUNT route handler ========
         
 
 
@@ -178,6 +235,7 @@ app.get('/', (req, res) => {
     res.render('index', { posts: posts });
 });
 // === END app.get ===
+
 
 
 
