@@ -1,85 +1,110 @@
-// Set the app to use "express"
-const express = require('express');
-
-// Import PostgreSQL client
-const { Pool } = require('pg');   // ← missing in your version
-
-// Load environment variables from .env file
+// Load environment variables
 require('dotenv').config();
 
-// Create an instance of express
+// Import dependencies
+const express = require('express');
+const { Pool } = require('pg');              // PostgreSQL
+const session = require('express-session');  
+
+
+// Initialize Express app
 const app = express();
 
-// Link View Engine
+// View engine setup
 app.set('view engine', 'ejs');
 
-// Middleware to parse URL-encoded bodies
-app.use(express.urlencoded({ extended: true }));
 
-// STYLES - Middleware to serve static files from the 'public' directory
-app.use(express.static('public'));
+// Middleware setup
+app.use(express.urlencoded({ extended: true })); // Parse form data
+app.use(express.static('public'));               // css
 
-// Set the port constant
-const port = 3000;
+// Session configuration
+app.use(session({
+    secret: process.env.SESSION_SECRET,  // pulled from .env
+    resave: false,
+    saveUninitialized: false
+}));
 
-// Link to database
+
+// Database connection
 const pool = new Pool({
-  user: process.env.PGUSER,
-  host: process.env.PGHOST,
-  database: process.env.PGDATABASE,
-  password: process.env.PGPASSWORD,
-  port: process.env.PGPORT,
+    user: process.env.PGUSER,
+    host: process.env.PGHOST,
+    database: process.env.PGDATABASE,
+    password: process.env.PGPASSWORD,
+    port: process.env.PGPORT,
 });
 
-let nextPostId = 3; // Variable to keep track of the next post ID
+// Makes currentUser + currentName available in all views
+// ============================
+app.use((req, res, next) => {
+    res.locals.currentUser = req.session.user_id || null;
+    res.locals.currentName = req.session.name || null;
+  next();
+});
 
 
+// Server configuration
+const port = 3000;
 
-// === Set post array ===
-const posts = [
-    {
-        id: 1, title: "Post 1", author: "Donald Duck", content: "This is the content of post 1.",
-        creationTime: new Date()
-    },
-    {
-        id: 2, title: "Post 2", author: "John Doe", content: "This is the content of post 2.",
-        creationTime: new Date()
+
+// ---------- HOME ----------
+app.get('/', async (req, res) => {
+    try 
+    {  
+        const result = await pool.query('SELECT * FROM blogs ORDER BY date_created DESC');
+        res.render('index', {
+        posts: result.rows
+        });
+    } catch (error) {
+        console.error('Error fetching posts:', error);
+        res.status(500).send('Server error while fetching posts.');
     }
-];
-// === END post array ===
+});
 
 
 
 //======== post route handler ========
 // Create post route handler
-app.post('/create-post', (req, res) => {
-    // 1. Get title and conent from req.body
-    const newPostTitle = req.body.title;
-    const newPostContent = req.body.content;
-    const newPostAuthor = req.body.author;
-    
+app.post('/create-post', async (req, res) => {
+    try 
+    {
+        // check if user is logged in - redirect to signin if not
+        if (!req.session.user_id) {
+            return res.redirect('/signin');
+        }
 
-    // 2. Create a new post object & variable to hold it
-    const newPost = {
-        id: nextPostId,
-        title: newPostTitle, 
-        author: newPostAuthor,
-        content: newPostContent,
-        creationTime: new Date()}; // timestamp of creation
+        // load title and body to request body
+        const {title, body} = req.body;
 
-    // 2.5 Increment the post ID for the next post
-    nextPostId++;
-    
+        // verify feilds are not empty
+        if (!title || !body) {
+            return res.send('Title and content are required.');
+        }
 
-    // 3. Add the new post to the array using ".push(postObject)"
-    posts.push(newPost);
+        // SET query to insert new post into db
+        const query = `
+            INSERT INTO blogs (creator_name, creator_user_id, title, body, date_created)
+            VALUES ($1, $2, $3, $4, NOW())
+        `;
 
-    // optional: log the new post to the console
-    console.log(newPost);
+        // insert into db
+        await pool.query(query, [
+            req.session.name, 
+            req.session.user_id, 
+            title, 
+            body
+        ]);
 
+        // redirect to home page
+        console.log(`New post titled "${title}" created by user ${req.session.user_id} with body "${body}.`);
+        res.redirect('/');
 
-    // 4. Redirect to the home page
-    res.redirect('/');
+    } catch (error) {
+        console.error('Error creating post:', error);
+        res.status(500).send('Server Error during post creation.');
+    }
+
 });
 
 //=== end of create post route handler ===
@@ -88,95 +113,132 @@ app.post('/create-post', (req, res) => {
 
 
 //======== Delete post route handler ========
-// AI comment template
-app.get('/delete-post/:id', (req, res) => {
-    // 1. Get post ID from URL params.
-        // since we set the route to '/delete-post/:id', we access the id via req.params.id
-        // the delete button is tied to the url 
-        // so when we clock delete we navage to url and pull data from there
-    const postIdStr = req.params.id;
-    // 2. Convert the ID from a string to an integer.
-    const deletePostId = parseInt(postIdStr);
-    
 
-    // 3. Find the index of the post to delete.
-    //    Use the findIndex() method on the 'posts' array.
-    //    this searches each post until it finds the one with the matching id
-    const postIndex = posts.findIndex(post => post.id === deletePostId)
-    
-    // 4. If post was found (index is not -1), remove it.
-    //    Use the splice() method to remove one item at the found index.
-    if (postIndex !== -1) {
-        // Post found, remove it from array
-        posts.splice(postIndex, 1);
-        // optional console log
-        console.log(`Post with ID {${deletePostId}} deleted.`);
-    } else {
-        // Post not found, log a message
-        console.log(`ERROR - Post with ID {${deletePostId}} not found.`);
+app.get('/delete-post/:id', async (req, res) => {
+    try {
+        // check if signed in
+        if (!req.session.user_id) {
+            return res.redirect('/signin');
+        } 
+
+        // get post id
+        const postId = parseInt(req.params.id);
+
+        // check post exists and belongs to user
+        const PostQuery = 'SELECT * FROM blogs WHERE blog_id = $1 AND creator_user_id = $2';
+
+        // run query
+        const verifyResult = await pool.query(PostQuery, [postId, req.session.user_id]);
+
+        // if post does not exist or does not belong to user
+        if (verifyResult.rows.length === 0) {
+            return res.send('Post not found or you do not have permission to delete this post.');
+        }
+
+        // delete only if user owns the post
+        const deleteQuery = 'DELETE FROM blogs WHERE blog_id = $1 AND creator_user_id = $2';
+
+        // execute delete query
+        await pool.query(deleteQuery, [postId, req.session.user_id]);
+
+        //redirect to home page log conesole content
+        console.log(`Post with ID {${postId}} deleted by user ${req.session.user_id}.`);
+        res.redirect('/');
+
+    } catch (error) {
+        console.error('Error deleting post:', error);
+
     }
-
-    // 5. Redirect to the home page.
-    res.redirect('/');
 });
 //======== End delete post route handler ========
 
 //======== (START) EDIT post route handler ========
-// Renders the edit page by the id. Allows user to edit a specific post.
-// Does not handle the "POST" request to actually update the post.
-app.get('/edit-post/:id', (req, res) => {
-    // 1. Get post ID from URL params and convert to an integer.
-    const editPostId = parseInt(req.params.id);
+app.get('/edit-post/:id', async (req, res) => {
+    try {
 
-    // 2. Finds post object with matching ID
-        //    Use the find() method on the 'posts' array.
-        //    Using find instead of findIndex because we want the entire post object
-    const postToEdit = posts.find(post => post.id === editPostId)
+        // check if signed in
+        if (!req.session.user_id) {
+            return res.redirect('/signin');
+        }
 
-    // 4. In the edit function, we are look for the entire post conect (id,title,author,contenct)
-    if (postToEdit) {
-        // Post found, (from url)
-        //render file send the (post) object to the edit.ejs file
-        res.render('edit', { post: postToEdit });
-        // optional console log
-        console.log(`Post with ID {${editPostId}} found. Reendering edit page.`);
-    } else {
-        // Post not found, log a message
-        console.log(`ERROR - Post with ID {${editPostId}} not found.`);
-        res.redirect('/');
+        // query post id
+        const editPostId = parseInt(req.params.id);
+
+        // fetch post from db
+        const verifyQuery = 'SELECT * FROM blogs WHERE blog_id = $1 AND creator_user_id = $2';
+        // get result from query
+        const verifyResult = await pool.query(verifyQuery, [editPostId, req.session.user_id]);
+
+        // if post not found or does not belong to user
+        if (verifyResult.rows.length === 0) {
+            return res.send('You do not have permission to edit this post.');
+        }
+
+
+        /// Render edit.ejs with the post data
+        res.render('edit', {
+            post: verifyResult.rows[0],
+            currentName: req.session.name
+        });
+        
+    } catch (error) {
+        console.error('Error loading edit post page:', error);
+        res.status(500).send('Server error while loading edit post page.');
     }
+
 });
 //======== (END) EDIT post route handler ========
 
 //======== (START) UPDATE post route handler ========
 // Handles the "POST" request to actually update the post.
-app.post('/update-post/:id', (req, res) => {
-    // 1. Get post ID from URL params and convert to an integer.
-    const updatePostId = parseInt(req.params.id);
-    // 2. Get updated title and content from req.body
-    const updatedTitle = req.body.title;
-    const updatedContent = req.body.content;
-    const updatedAuthor = req.body.author;
+app.post('/update-post/:id', async (req, res) => {
+    try {
 
-    // 3. Find the post to update using the find() method.
-    const postToUpdate = posts.find(post => post.id === updatePostId);
+        // check if signed in
+        if (!req.session.user_id) {
+            return res.redirect('/signin');
+        }
 
-    // 4. If post was found, update its title and content.
-    if (postToUpdate) {
-        // update the post's properties
-        postToUpdate.title = updatedTitle;
-        postToUpdate.content = updatedContent;
-        postToUpdate.author = updatedAuthor;
-        // optional console log
-        console.log(`Post with ID {${updatePostId}} updated.`);
-    } else {
-        // Post not found, log a message
-        console.log(`ERROR - Post with ID {${updatePostId}} not found.`);
+        const editPostId = parseInt(req.params.id);
+
+        // updated title and content from req.body
+        const { title, body } = req.body;
+
+        // check if title and body are empty
+        if (!title || !body) {
+            return res.send('Title and content are required.');
+        }
+
+        // fetch post from db
+        const verifyQuery = 'SELECT * FROM blogs WHERE blog_id = $1 AND creator_user_id = $2';
+        // get result from query
+        const verifyResult = await pool.query(verifyQuery, [editPostId, req.session.user_id]);
+
+        //verify ownership
+        if (verifyResult.rows.length === 0) {
+            return res.send('You do not have permission to edit this post.');
+        }
+
+        // update post & query
+        const updateQuery = 'UPDATE blogs SET title = $1, body = $2 WHERE blog_id = $3 AND creator_user_id = $4';
+
+        // run update query
+        await pool.query(updateQuery, [title, body, editPostId, req.session.user_id]);
+
+        //redirect and log console content
+        console.log(`Post with ID {${editPostId}} updated by user ${req.session.user_id}.`);
+        res.redirect('/');
+    } catch (error) {
+        console.error('Error updating post:', error);
+        res.status(500).send('Server error while updating post.');
     }
-    // 5. Redirect to the home page.
-    res.redirect('/');
 });
 //======== (END) UPDATE post route handler ========
+
+// Display signup form
+app.get('/signup', (req, res) => {
+  res.render('signup');
+});
 
 //======== (START) CREATE ACCOUNT route handler ========
 app.post('/signup', async (req, res) => {
@@ -206,8 +268,9 @@ app.post('/signup', async (req, res) => {
         // send the values to the query
         await pool.query(insertUserQuery, [user_id, password, name]);
 
+
         // redirect to sign in page
-        res.redirect('/singin');
+        res.redirect('/signin');
 
     } catch (error) {
         console.error('Error creating account:', error);
@@ -217,27 +280,59 @@ app.post('/signup', async (req, res) => {
 });
     //
 //======== (END) CREATE ACCOUNT route handler ========
-        
 
-
-
-/* === app.get ===
-    Step 1) "/" - url path
-    Step 2) 2 arguments
-        a) req - request object
-        b) res - response object
-    Step 3) res.send() - sends a response to the client*/
-
-app.get('/', (req, res) => {
-    // Render the index.ejs file
-        // register "index.ejs" as the template
-        // pass the posts array to the template ({ posts: posts })
-    res.render('index', { posts: posts });
+app.get('/signin', (req, res) => {
+    res.render('signin');  // This will render views/signin.ejs
 });
-// === END app.get ===
 
+// Signin route handler
+app.post('/signin', async (req, res) => {
+    try {
+        const { user_id, password } = req.body;
 
+        // empty feild check
+        if (!user_id || !password) {
+            return res.send('Both username and password are required.');
+        }
 
+        // Check if user exists in the database
+        const userQuery = 'SELECT * FROM users WHERE user_id = $1 AND password = $2';
+        const existingUser = await pool.query(userQuery, [user_id, password]);
+
+        // If user does not exist or password is incorrect
+        if (existingUser.rows.length === 0) {
+            return res.send('Invalid username or password.');
+        }
+
+        // check if entered password matches the stored password
+        const storedPassword = existingUser.rows[0].password;
+
+        if (storedPassword === password) 
+            {
+                // User authenticated successfully
+                console.log(`User ${user_id} signed in successfully.`);
+                // store session
+                req.session.user_id = existingUser.rows[0].user_id;
+                req.session.name = existingUser.rows[0].name;
+                res.redirect('/'); // Redirect to home page or dashboard
+            }
+            else {
+                // Passwords do not match
+                return res.send('Invalid username or password.');
+            }
+
+    } catch (error) {
+        console.error('Error during sign in:', error);
+        res.status(500).send('Server Error during sign in.');
+    }
+});
+
+app.get('/logout', (req, res) => {
+  req.session.destroy(() => {
+    res.redirect('/signin');
+  });
+});
+        
 
 // === app.listen ===
 // Make the app listen on the specified port

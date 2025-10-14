@@ -1,37 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Blog</title>
-    <link rel="stylesheet" href="/css/styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Blog</title>
+  <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
+  <%- include('partials/header') %>
 
-<h1>BLOG POST</h1>
+  <main class="page-container">
+    <% if (currentUser) { %>
+      <section class="create-post">
+        <h2>Create a New Post</h2>
+        <form method="POST" action="/create-post">
+          <input
+            type="text"
+            name="title"
+            placeholder="Post Title"
+            required
+          />
+          <textarea
+            name="body"
+            placeholder="Write your post content here..."
+            rows="6"
+            required
+          ></textarea>
+          <button type="submit">Create Post</button>
+        </form>
+      </section>
+    <% } %>
 
-<form method="POST" action="/create-post">
-    <input type="text" name="author" placeholder="Author Name" required />
-    <input type="text" name="title" placeholder="Post Title" required />
-    <textarea name="content" placeholder="Post Content" required></textarea>
-    <button type="submit">Create Post</button>
-</form>
+    <section class="post-feed">
+      <h2>All Posts</h2>
 
+      <% if (posts && posts.length > 0) { %>
+        <% posts.forEach(post => { %>
+          <article class="post">
+            <h3><%= post.title %></h3>
+            <p><%= post.body %></p>
+            <div class="post-meta">
+              <span>By <%= post.creator_name %></span> |
+              <span><%= new Date(post.date_created).toLocaleString() %></span>
+            </div>
 
-<%# This is an EJS comment. The code below loops through each post. %>
-    <% posts.forEach(post => { %>
-    <article class="post">
-        <h2><%= post.title %></h2>
-        <%# The date has been removed from this line %>
-        <i>By: <%= post.author %></i>
-        <p><%= post.content %></p>
-        
-        <a href="/edit-post/<%= post.id %>">Edit</a>
-        <a href="/delete-post/<%= post.id %>">Delete</a>
-
-        <%# Add this new div below the links %>
-        <div class="post-meta">
-            Posted on <%= post.creationTime.toLocaleString() %>
-        </div>
-    </article>
-<% }) %>
+            <% if (currentUser === post.creator_user_id) { %>
+              <div class="post-actions">
+                <a href="/edit-post/<%= post.blog_id %>">Edit</a>
+                <a href="/delete-post/<%= post.blog_id %>">Delete</a>
+              </div>
+            <% } %>
+          </article>
+        <% }) %>
+      <% } else { %>
+        <p>No posts yet. Be the first to create one!</p>
+      <% } %>
+    </section>
+  </main>
+</body>
+</html>

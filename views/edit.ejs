@@ -1,21 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Post</title>
-    <link rel="stylesheet" href="/css/styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edit Post</title>
+  <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
+  <%- include('partials/header') %>
 
-    <h1>Edit Your Post</h1>
+  <main class="page-container">
+    <section class="edit-form">
+      <h2>Edit Your Post</h2>
+      <form method="POST" action="/update-post/<%= post.blog_id %>">
+        <label for="title">Title</label>
+        <input type="text" id="title" name="title" value="<%= post.title %>" required />
 
-    <form method="POST" action="/update-post/<%= post.id %>">
-        <input type="text" name="author" value="<%= post.author %>" required />
-        <input type="text" name="title" value="<%= post.title %>" required />
-        <textarea name="content" required><%= post.content %></textarea>
+        <label for="body">Content</label>
+        <textarea id="body" name="body" rows="8" required><%= post.body %></textarea>
+
         <button type="submit">Save Changes</button>
-    </form>
-
+        <a href="/" class="cancel-link">Cancel</a>
+      </form>
+    </section>
+  </main>
 </body>
 </html>

@@ -1,0 +1,12 @@
+{
+    "folder-color.pathColors": [
+        {
+            "folderPath": "CS-312-MiniBlogProject-1\\views\\signin.ejs\\",
+            "color": "foldercolorizer.color_33cc00"
+        },
+        {
+            "folderPath": "CS-312-MiniBlogProject-1\\views\\signup.ejs\\",
+            "color": "foldercolorizer.color_66ccff"
+        }
+    ]
+}
