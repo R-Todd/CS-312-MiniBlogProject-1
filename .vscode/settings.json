@@ -43,6 +43,18 @@
         {
             "folderPath": "CS-312-MiniBlogProject-1\\server\\node_modules\\",
             "color": "foldercolorizer.color_999999"
+        },
+        {
+            "folderPath": "CS-312-MiniBlogProject-1\\server\\package-lock.json\\",
+            "color": "foldercolorizer.color_dddddd"
+        },
+        {
+            "folderPath": "CS-312-MiniBlogProject-1\\server\\package.json\\",
+            "color": "foldercolorizer.color_dddddd"
+        },
+        {
+            "folderPath": "CS-312-MiniBlogProject-1\\server\\server.js\\",
+            "color": "foldercolorizer.color_ff6699"
         }
     ]
 }
