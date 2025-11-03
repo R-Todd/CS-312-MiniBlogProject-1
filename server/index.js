@@ -3,6 +3,7 @@ require('dotenv').config();
 
 // Import dependencies
 const express = require('express');
+const cors = require('cors'); // cors to request resources from server (diffent orgin)
 const { Pool } = require('pg');              // PostgreSQL
 const session = require('express-session');
 
@@ -12,6 +13,9 @@ const app = express();
 
 // View engine setup
 app.set('view engine', 'ejs');
+
+//enable cors
+app.use(cors());
 
 
 // Middleware setup

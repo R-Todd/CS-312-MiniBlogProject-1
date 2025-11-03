@@ -7,6 +7,42 @@
         {
             "folderPath": "CS-312-MiniBlogProject-1\\views\\signup.ejs\\",
             "color": "foldercolorizer.color_66ccff"
+        },
+        {
+            "folderPath": "CS-312-MiniBlogProject-1\\server\\",
+            "color": "foldercolorizer.color_ff9966"
+        },
+        {
+            "folderPath": "CS-312-MiniBlogProject-1\\server\\public\\",
+            "color": "foldercolorizer.color_cc66ff"
+        },
+        {
+            "folderPath": "CS-312-MiniBlogProject-1\\server\\views\\",
+            "color": "foldercolorizer.color_ffff33"
+        },
+        {
+            "folderPath": "CS-312-MiniBlogProject-1\\server\\.env\\",
+            "color": "foldercolorizer.color_ff3333"
+        },
+        {
+            "folderPath": "CS-312-MiniBlogProject-1\\server\\.env.example\\",
+            "color": "foldercolorizer.color_ff3333"
+        },
+        {
+            "folderPath": "CS-312-MiniBlogProject-1\\server\\.gitattributes\\",
+            "color": "foldercolorizer.color_999999"
+        },
+        {
+            "folderPath": "CS-312-MiniBlogProject-1\\server\\.gitignore\\",
+            "color": "foldercolorizer.color_999999"
+        },
+        {
+            "folderPath": "CS-312-MiniBlogProject-1\\server\\index.js\\",
+            "color": "foldercolorizer.color_00cc00"
+        },
+        {
+            "folderPath": "CS-312-MiniBlogProject-1\\server\\node_modules\\",
+            "color": "foldercolorizer.color_999999"
         }
     ]
 }
