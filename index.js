@@ -4,7 +4,7 @@ require('dotenv').config();
 // Import dependencies
 const express = require('express');
 const { Pool } = require('pg');              // PostgreSQL
-const session = require('express-session');  
+const session = require('express-session');
 
 
 // Initialize Express app
