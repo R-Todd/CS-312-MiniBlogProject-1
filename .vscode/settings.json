@@ -55,6 +55,22 @@
         {
             "folderPath": "CS-312-MiniBlogProject-1\\server\\server.js\\",
             "color": "foldercolorizer.color_ff6699"
+        },
+        {
+            "folderPath": "CS-312-MiniBlogProject-1\\client\\",
+            "color": "foldercolorizer.color_99ff33"
+        },
+        {
+            "folderPath": "CS-312-MiniBlogProject-1\\client\\.gitignore\\",
+            "color": "foldercolorizer.color_999999"
+        },
+        {
+            "folderPath": "CS-312-MiniBlogProject-1\\client\\src\\components\\",
+            "color": "foldercolorizer.color_9999ff"
+        },
+        {
+            "folderPath": "CS-312-MiniBlogProject-1\\client\\src\\",
+            "color": "foldercolorizer.color_99ffff"
         }
     ]
 }
