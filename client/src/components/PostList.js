@@ -1,15 +1,15 @@
 //src/components/PostList.js
 
-//import reach w/ hooks
+//import react w/ hooks
 import React, { useState, useEffect } from 'react';
 // useState - store and update component state
 // useEffect - perform side effects like fetching data
 
 
 // ===== PostList Functional Component =====
-function PostList() {
+function PostList({ posts }) {
 
-    // set inital component state to empty array
+    /* // set inital component state to empty array
         // state variable (posts) holds list of blog posts
         // "setter" function (setPosts) updates posts state
     const [posts, setPosts] = useState([]);
@@ -35,6 +35,8 @@ function PostList() {
       // ONLY RUN useEffect ONCE
         // [dependency] since this [] is empty only run when a component appears on screen
     }, []); // empty dependency array = run once on mount
+    */
+   // -- Moved to app.js for auto reload  -- //
     
     // ===== RENDER Return (JSX) =====
     return (

@@ -57,8 +57,8 @@ app.get('/api/test', (req, res) => {
 
 // ---------- HOME ----------
 
-// modified from index.js for react
-app.get('/api/blogs', async (req, res) => {
+// LIST BLOG POSTS
+ app.get('/api/blogs', async (req, res) => {
     // fetch blog post from db and send as json to /api/blogs route
     try 
     {  
@@ -72,6 +72,42 @@ app.get('/api/blogs', async (req, res) => {
         // instead of .send(``) send json error
         res.status(500).json({ error: 'Error fetching blog posts' });
     }
+});
+
+//======== post route handler ========
+// Create post route handler - copied from index.js
+app.post('/api/blogs', async (req, res) => {
+    try 
+    {
+        // load title and body to request body
+        const {title, body} = req.body;
+
+        // verify feilds are not empty
+        if (!title || !body) {
+            // use res.status(400) instad of res.send
+            return res.status(400).json({ error: 'Title and body are required' });
+        }
+
+        // SET query to insert new post into db
+        // const query = `INSERT INTO blogs (creator_name, creator_user_id, title, body, date_created)
+        //     VALUES ($1, $2, $3, $4, NOW())`;
+
+        const result = await pool.query(
+            // instead of query call the same query line but load into [title, body]
+        'INSERT INTO blogs (title, body, date_created) VALUES ($1, $2, NOW()) RETURNING *',
+        [title, body]
+        );
+
+        // respond with inserted post (as json)
+        res.status(201).json(result.rows[0]); // top of array
+
+
+    } catch (error) {
+        console.error('Error creating blog post:', error);
+        res.status(500).json({ error: 'Error creating blog post' });
+    }
+
+
 });
 
 
