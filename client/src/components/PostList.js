@@ -8,7 +8,8 @@ import React from 'react';
 
 
 // ===== PostList Functional Component =====
-function PostList({ posts }) {
+function PostList({ posts, refreshPosts, currentUser }) {
+
 
     /* // set inital component state to empty array
         // state variable (posts) holds list of blog posts
@@ -38,6 +39,62 @@ function PostList({ posts }) {
     }, []); // empty dependency array = run once on mount
     */
    // -- Moved to app.js for auto reload  -- //
+
+   const handleEdit = async (blogId) => 
+    {
+    const updatedTitle = prompt('Enter new title:');
+    const updatedBody = prompt('Enter new body:');
+
+
+    if (!updatedTitle || !updatedBody) return;
+
+    try {
+        // fetch id to edit
+        const response = await fetch(`/api/blogs/${blogId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({ title: updatedTitle, body: updatedBody }),
+        });
+
+        if (response.ok) {
+            console.log('Blog post updated');
+            refreshPosts(); // Refresh the posts list
+        } else {
+            console.error('Failed to update blog post');
+        }
+    } catch (error) {
+        console.error('Error updating blog post:', error);
+    }
+
+
+    };
+
+
+
+    const handleDelete = async (blogId) => {
+        if (!window.confirm("Are you sure you want to delete this post?")) return;
+
+        try {
+            const response = await fetch(`/api/blogs/${blogId}`, {
+                method: 'DELETE',
+                credentials: 'include',
+            });
+
+            if (response.ok) {
+                console.log('Blog post deleted');
+                refreshPosts(); // Refresh the posts list
+            } else {
+                console.error('Failed to delete blog post:', response.status);
+            }
+        } catch (error) {
+            console.error('Error deleting blog post:', error);
+        }
+
+    };
+
     
     // ===== RENDER Return (JSX) =====
     return (
@@ -89,6 +146,7 @@ function PostList({ posts }) {
     );
 // PostList end bracket
 }
+
 
 
 // export PostList to be imported to app.js
