@@ -1,12 +1,14 @@
 // copied from index.js and edited for react front end
 // Load environment variables
-require('dotenv').config();
+import dotenv from 'dotenv';
+dotenv.config();
 
 // Import dependencies
-const express = require('express');
-const cors = require('cors'); // cors to request resources from server (diffent orgin)
-const { Pool } = require('pg');              // PostgreSQL
-const session = require('express-session');
+import express from 'express';
+import cors from 'cors';
+import session from 'express-session';
+import pool from './db/pool.js';        // shared db pool
+import authRoutes from './routes/auth.js';
 
 
 // Initialize Express app
@@ -28,25 +30,23 @@ app.use(express.json()); // react sends json data
 
 // ENV Session Setup
 app.use(session({
-    secret: process.env.SESSION_SECRET,  // pulled from .env
+    secret: 'secretSession123445',
     resave: false,
-    saveUninitialized: false
+    saveUninitialized: false,
+    cookie: {
+        httpOnly: true,            // prevent client-side JS access
+        secure: false,             // false for localhost; set true in production (HTTPS)
+        sameSite: 'lax',          //  cross-origin cookies
+    }
 }));
-
-// Database connection - same as index.js
-const pool = new Pool({
-    user: process.env.PGUSER,
-    host: process.env.PGHOST,
-    database: process.env.PGDATABASE,
-    password: process.env.PGPASSWORD,
-    port: process.env.PGPORT,
-});
 
 
 // ---------------- END OF SETUP ---------------- //
 
 
 // ============ API ROUTES ============ //
+// Use auth routes
+app.use('/api/auth', authRoutes);
 
 // API test route
 app.get('/api/test', (req, res) => {
@@ -61,9 +61,20 @@ app.get('/api/test', (req, res) => {
  app.get('/api/blogs', async (req, res) => {
     // fetch blog post from db and send as json to /api/blogs route
     try 
-    {  
+    {
         // retrieve all blog posts from db -- same as index.js
-        const result = await pool.query('SELECT * FROM blogs ORDER BY date_created DESC');
+        const result = await pool.query(`
+            SELECT
+                blogs.blog_id,
+                blogs.title,
+                blogs.body,
+                blogs.date_created,
+                blogs.creator_user_id,
+                users.name AS creator_name
+            FROM blogs
+            JOIN users ON blogs.creator_user_id = users.user_id
+            ORDER BY blogs.date_created DESC;`);
+
         // instead of res.render we will use res.json and send the same result rows
         res.json(result.rows);
 
@@ -75,10 +86,18 @@ app.get('/api/test', (req, res) => {
 });
 
 //======== post route handler ========
-// Create post route handler - copied from index.js
+// Create post route handler - copied/edited from index.js
 app.post('/api/blogs', async (req, res) => {
     try 
     {
+        const user = req.session.user_id ? {
+            user_id: req.session.user_id,
+            name: req.session.name
+        } : null;
+
+        if (!user) {
+            return res.status(401).json({ message: 'You must be signed in to post.' });
+        }
         // load title and body to request body
         const {title, body} = req.body;
 
@@ -93,22 +112,79 @@ app.post('/api/blogs', async (req, res) => {
         //     VALUES ($1, $2, $3, $4, NOW())`;
 
         const result = await pool.query(
-            // instead of query call the same query line but load into [title, body]
-        'INSERT INTO blogs (title, body, date_created) VALUES ($1, $2, NOW()) RETURNING *',
-        [title, body]
-        );
+            
+        `INSERT INTO blogs (creator_name, creator_user_id, title, body, date_created)
+        VALUES ($1, $2, $3, $4, NOW()) RETURNING *`,
+
+        [user.name, user.user_id, title, body]
+    );
 
         // respond with inserted post (as json)
         res.status(201).json(result.rows[0]); // top of array
-
-
     } catch (error) {
         console.error('Error creating blog post:', error);
         res.status(500).json({ error: 'Error creating blog post' });
     }
 
-
 });
+
+
+app.delete('/api/blogs/:id', async (req, res) => {
+    const { id } = req.params;
+    const userId = req.session.user?.user_id;
+
+    if (!userId) return res.status(401).json({ message: 'Not authorized' });
+
+
+    try {
+        // verify user owns the post before deleting
+        const result = await pool.query(
+        'DELETE FROM blogs WHERE blog_id = $1 AND creator_user_id = $2 RETURNING *',
+        [id, userId]
+        );
+
+        if (result.rowCount === 0) {
+        return res.status(403).json({ message: 'Cannot delete another user’s post' });
+        }
+
+        res.json({ message: 'Post deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting post:', error);
+        res.status(500).json({ message: 'Error deleting post' });
+    }
+    });
+
+
+app.put('/api/blogs/:id', async (req, res) => {
+    const { id } = req.params;
+    const { title, body } = req.body;
+    const userId = req.session.user?.user_id;
+
+    if (!userId) return res.status(401).json({ message: 'Not authorized' });
+
+    try {
+        const result = await pool.query(
+            `UPDATE blogs
+            SET title = $1, body = $2
+            WHERE blog_id = $3 AND creator_user_id = $4
+            RETURNING *`,
+            [title, body, id, userId]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(403).json({ message: 'Cannot edit another user’s post' });
+        }
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error updating post:', error);
+        res.status(500).json({ message: 'Error updating post' });
+    }
+    });
+
+
+
+
 
 
 

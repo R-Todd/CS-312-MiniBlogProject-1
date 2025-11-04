@@ -71,6 +71,10 @@
         {
             "folderPath": "CS-312-MiniBlogProject-1\\client\\src\\",
             "color": "foldercolorizer.color_99ffff"
+        },
+        {
+            "folderPath": "CS-312-MiniBlogProject-1\\client\\src\\components\\SignupForm.js\\",
+            "color": "foldercolorizer.color_00cc33"
         }
     ]
 }

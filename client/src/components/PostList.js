@@ -1,7 +1,8 @@
 //src/components/PostList.js
 
 //import react w/ hooks
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+
 // useState - store and update component state
 // useEffect - perform side effects like fetching data
 
@@ -47,11 +48,10 @@ function PostList({ posts }) {
             {posts.length === 0 ? (
                 <p>No posts yet.</p>
             ) : (
-    
                 // loop through posts array and render each post
-                posts.map((post, index) => (
+                posts.map((post) => (
 
-                    <div key={index} className="card mb-3">
+                    <div key={post.blog_id} className="card mb-3">
 
                         <div className="card-body">
                             {/* Post Title */}
@@ -59,6 +59,28 @@ function PostList({ posts }) {
 
                             {/* Post Body */}
                             <p className="card-text">{post.body}</p>
+
+                            {/* creator name */}
+                            <p className = "text-muted">By: {post.creator_name}</p>
+
+                            {/* edit and delete buttons */}
+                            {currentUser && currentUser.user_id === post.creator_user_id && (
+                                <div className="mt-2">
+                                    <button
+                                        className="btn btn-sm btn-primary me-2"
+                                        onClick={() => handleEdit(post.blog_id)}
+                                    >
+                                        Edit
+                                    </button>
+                                    <button
+                                        className="btn btn-sm btn-danger"
+                                        onClick={() => handleDelete(post.blog_id)}
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            )}
+
                         </div>
                     </div>
                 ))
